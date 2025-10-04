@@ -1,0 +1,250 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model administrator {
+  administrator_id Int    @id @default(autoincrement()) @db.UnsignedInt
+  username         String @unique(map: "uq_administrator_username") @db.VarChar(64)
+  password         String @db.VarChar(255)
+}
+
+model category {
+  category_id         Int        @id @default(autoincrement()) @db.UnsignedInt
+  name                String     @unique(map: "uq_category_name") @db.VarChar(50)
+  parent__category_id Int?       @db.UnsignedInt
+  category            category?  @relation("categoryTocategory", fields: [parent__category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category_parent__category_id")
+  other_category      category[] @relation("categoryTocategory")
+  feature             feature[]
+  listing             listing[]
+
+  @@index([parent__category_id], map: "fk_category_parent__category_id")
+}
+
+model engine {
+  engine_id     Int                 @id @default(autoincrement()) @db.UnsignedInt
+  displacement  Int?                @db.UnsignedInt
+  fuel          engine_fuel
+  horsepower    Int                 @db.UnsignedInt
+  euro_standard String              @db.VarChar(10)
+  transmission  engine_transmission
+  listing       listing[]
+}
+
+model favorite {
+  favorite_id Int      @id @default(autoincrement()) @db.UnsignedInt
+  listing_id  Int      @db.UnsignedInt
+  user_id     Int      @db.UnsignedInt
+  created_at  DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+  listing     listing  @relation(fields: [listing_id], references: [listing_id], map: "fk_favorite_listing_id")
+  user        user     @relation(fields: [user_id], references: [user_id], map: "fk_favorite_user_id")
+
+  @@unique([listing_id, user_id], map: "uq_favorite_listing_id_user_id")
+  @@index([listing_id], map: "fk_favorite_listing_id")
+  @@index([user_id], map: "fk_favorite_user_id")
+}
+
+model feature {
+  feature_id      Int               @id @default(autoincrement()) @db.UnsignedInt
+  category_id     Int               @db.UnsignedInt
+  name            String            @db.VarChar(100)
+  category        category          @relation(fields: [category_id], references: [category_id], map: "fk_feature_category_id")
+  listing_feature listing_feature[]
+
+  @@index([category_id], map: "fk_feature_category_id")
+}
+
+model listing {
+  listing_id      Int               @id @default(autoincrement()) @db.UnsignedInt
+  user_id         Int               @db.UnsignedInt
+  category_id     Int               @db.UnsignedInt
+  manufacturer_id Int               @db.UnsignedInt
+  engine_id       Int               @db.UnsignedInt
+  title           String            @db.VarChar(255)
+  is_promoted     Boolean           @default(false)
+  description     String            @db.Text
+  status          listing_status    @default(active)
+  favorite        favorite[]
+  category        category          @relation(fields: [category_id], references: [category_id], map: "fk_listing_category_id")
+  engine          engine            @relation(fields: [engine_id], references: [engine_id], map: "fk_listing_engine_id")
+  manufacturer    manufacturer      @relation(fields: [manufacturer_id], references: [manufacturer_id], map: "fk_listing_manufacturer_id")
+  user            user              @relation(fields: [user_id], references: [user_id], map: "fk_listing_user_id")
+  listing_feature listing_feature[]
+  listing_photo   listing_photo[]
+  listing_price   listing_price[]
+  listing_sale    listing_sale?
+  message         message[]
+
+  @@index([category_id], map: "fk_listing_category_id")
+  @@index([engine_id], map: "fk_listing_engine_id")
+  @@index([manufacturer_id], map: "fk_listing_manufacturer_id")
+  @@index([user_id], map: "fk_listing_user_id")
+}
+
+model listing_feature {
+  listing_feature_id Int     @id @default(autoincrement()) @db.UnsignedInt
+  listing_id         Int     @db.UnsignedInt
+  feature_id         Int     @db.UnsignedInt
+  feature            feature @relation(fields: [feature_id], references: [feature_id], map: "fk_listing_feature_feature_id")
+  listing            listing @relation(fields: [listing_id], references: [listing_id], map: "fk_listing_feature_listing_id")
+
+  @@unique([listing_id, feature_id], map: "uq_listing_feature_listing_id_feature_id")
+  @@index([feature_id], map: "fk_listing_feature_feature_id")
+  @@index([listing_id], map: "fk_listing_feature_listing_id")
+}
+
+model listing_photo {
+  listing_photo_id Int     @id @default(autoincrement()) @db.UnsignedInt
+  listing_id       Int     @db.UnsignedInt
+  url              String  @db.VarChar(255)
+  listing          listing @relation(fields: [listing_id], references: [listing_id], map: "fk_listing_photo_listing_id")
+
+  @@index([listing_id], map: "fk_listing_photo_listing_id")
+}
+
+model listing_price {
+  listing_price_id Int      @id @default(autoincrement()) @db.UnsignedInt
+  listing_id       Int      @db.UnsignedInt
+  price            Int      @db.UnsignedInt
+  created_at       DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+  listing          listing  @relation(fields: [listing_id], references: [listing_id], map: "fk_listing_price_listing_id")
+
+  @@index([listing_id], map: "fk_listing_price_listing_id")
+}
+
+model listing_sale {
+  listing_sale_id                   Int      @id @default(autoincrement()) @db.UnsignedInt
+  listing_id                        Int      @unique(map: "uq_listing_sale_listing_id") @db.UnsignedInt
+  seller_id                         Int      @db.UnsignedInt
+  buyer_id                          Int?     @db.UnsignedInt
+  sale_price                        Int      @db.UnsignedInt
+  sold_at                           DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+  user_listing_sale_buyer_idTouser  user?    @relation("listing_sale_buyer_idTouser", fields: [buyer_id], references: [user_id], map: "fk_listing_sale_buyer_id")
+  listing                           listing  @relation(fields: [listing_id], references: [listing_id], map: "fk_listing_sale_listing_id")
+  user_listing_sale_seller_idTouser user     @relation("listing_sale_seller_idTouser", fields: [seller_id], references: [user_id], map: "fk_listing_sale_seller_id")
+  review                            review[]
+
+  @@index([buyer_id], map: "fk_listing_sale_buyer_id")
+  @@index([listing_id], map: "fk_listing_sale_listing_id")
+  @@index([seller_id], map: "fk_listing_sale_seller_id")
+}
+
+model manufacturer {
+  manufacturer_id Int       @id @default(autoincrement()) @db.UnsignedInt
+  name            String    @db.VarChar(50)
+  listing         listing[]
+}
+
+model message {
+  message_id                     Int      @id @default(autoincrement()) @db.UnsignedInt
+  listing_id                     Int      @db.UnsignedInt
+  sender_id                      Int      @db.UnsignedInt
+  receiver_id                    Int      @db.UnsignedInt
+  content                        String   @db.Text
+  created_at                     DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
+  listing                        listing  @relation(fields: [listing_id], references: [listing_id], map: "fk_message_listing_id")
+  user_message_receiver_idTouser user     @relation("message_receiver_idTouser", fields: [receiver_id], references: [user_id], map: "fk_message_receiver_id")
+  user_message_sender_idTouser   user     @relation("message_sender_idTouser", fields: [sender_id], references: [user_id], map: "fk_message_sender_id")
+
+  @@index([listing_id], map: "fk_message_listing_id")
+  @@index([receiver_id], map: "fk_message_receiver_id")
+  @@index([sender_id], map: "fk_message_sender_id")
+}
+
+model review {
+  review_id                     Int          @id @default(autoincrement()) @db.UnsignedInt
+  listing_sale_id               Int          @db.UnsignedInt
+  reviewer_id                   Int          @db.UnsignedInt
+  reviewed_id                   Int          @db.UnsignedInt
+  rating                        Int          @db.UnsignedTinyInt
+  comment                       String?      @db.Text
+  created_at                    DateTime     @default(dbgenerated("(now())")) @db.Timestamp(0)
+  listing_sale                  listing_sale @relation(fields: [listing_sale_id], references: [listing_sale_id], onDelete: Cascade, map: "fk_review_listing_sale_id")
+  user_review_reviewed_idTouser user         @relation("review_reviewed_idTouser", fields: [reviewed_id], references: [user_id], onDelete: Cascade, map: "fk_review_reviewed_id")
+  user_review_reviewer_idTouser user         @relation("review_reviewer_idTouser", fields: [reviewer_id], references: [user_id], onDelete: Cascade, map: "fk_review_reviewer_id")
+
+  @@index([listing_sale_id], map: "fk_review_listing_sale_id")
+  @@index([reviewed_id], map: "fk_review_reviewed_id")
+  @@index([reviewer_id], map: "fk_review_reviewer_id")
+}
+
+model subscription_plan {
+  subscription_plan_id Int                                @id @default(autoincrement()) @db.UnsignedInt
+  name                 String                             @unique(map: "uq_subscription_plan_name") @db.VarChar(64)
+  description          String?                            @db.Text
+  stripe_price_id      String?                            @db.VarChar(255)
+  max_listings         Int                                @default(1) @db.UnsignedInt
+  price_cents          Int                                @default(0) @db.UnsignedInt
+  billing_interval     subscription_plan_billing_interval @default(month)
+  created_at           DateTime                           @default(dbgenerated("(now())")) @db.Timestamp(0)
+  user_subscription    user_subscription[]
+}
+
+model user {
+  user_id                                   Int                 @id @default(autoincrement()) @db.UnsignedInt
+  first_name                                String              @db.VarChar(64)
+  last_name                                 String              @db.VarChar(64)
+  email                                     String              @unique(map: "uq_user_email") @db.VarChar(255)
+  password                                  String              @db.VarChar(255)
+  phone_number                              String              @db.VarChar(24)
+  postal_address                            String              @db.Text
+  created_at                                DateTime            @default(dbgenerated("(now())")) @db.Timestamp(0)
+  favorite                                  favorite[]
+  listing                                   listing[]
+  listing_sale_listing_sale_buyer_idTouser  listing_sale[]      @relation("listing_sale_buyer_idTouser")
+  listing_sale_listing_sale_seller_idTouser listing_sale[]      @relation("listing_sale_seller_idTouser")
+  message_message_receiver_idTouser         message[]           @relation("message_receiver_idTouser")
+  message_message_sender_idTouser           message[]           @relation("message_sender_idTouser")
+  review_review_reviewed_idTouser           review[]            @relation("review_reviewed_idTouser")
+  review_review_reviewer_idTouser           review[]            @relation("review_reviewer_idTouser")
+  user_subscription                         user_subscription[]
+}
+
+model user_subscription {
+  user_subscription_id   Int                      @id @default(autoincrement()) @db.UnsignedInt
+  user_id                Int                      @db.UnsignedInt
+  subscription_plan_id   Int                      @db.UnsignedInt
+  stripe_customer_id     String?                  @db.VarChar(255)
+  stripe_subscription_id String?                  @db.VarChar(255)
+  status                 user_subscription_status @default(active)
+  start_date             DateTime                 @default(dbgenerated("(now())")) @db.Timestamp(0)
+  end_date               DateTime?                @db.Timestamp(0)
+  subscription_plan      subscription_plan        @relation(fields: [subscription_plan_id], references: [subscription_plan_id], map: "fk_user_subscription_subscription_plan_id")
+  user                   user                     @relation(fields: [user_id], references: [user_id], map: "fk_user_subscription_user_id")
+
+  @@unique([user_id, subscription_plan_id], map: "uq_user_subscription_user_id_subscription_plan_id")
+  @@index([subscription_plan_id], map: "fk_user_subscription_subscription_plan_id")
+  @@index([user_id], map: "fk_user_subscription_user_id")
+}
+
+enum engine_fuel {
+  petrol
+  diesel
+  hybrid
+  electric
+}
+
+enum user_subscription_status {
+  active
+  canceled
+  past_due
+}
+
+enum engine_transmission {
+  manual
+  automatic
+}
+
+enum subscription_plan_billing_interval {
+  month
+  year
+}
+
+enum listing_status {
+  active
+  sold
+}
