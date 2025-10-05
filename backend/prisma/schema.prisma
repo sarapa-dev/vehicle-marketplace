@@ -190,8 +190,8 @@ model user {
   last_name                                 String              @db.VarChar(64)
   email                                     String              @unique(map: "uq_user_email") @db.VarChar(255)
   password                                  String              @db.VarChar(255)
-  phone_number                              String              @db.VarChar(24)
-  postal_address                            String              @db.Text
+  phone_number                              String?             @db.VarChar(24)
+  postal_address                            String?             @db.Text
   created_at                                DateTime            @default(dbgenerated("(now())")) @db.Timestamp(0)
   favorite                                  favorite[]
   listing                                   listing[]
