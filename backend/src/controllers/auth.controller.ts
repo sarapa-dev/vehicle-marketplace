@@ -45,7 +45,7 @@ export const register = async (req: Request<{}, {}, Prisma.userCreateInput>, res
       },
     });
 
-    res.status(201).json({ message: "User registered successfully" });
+    res.status(201).json({ user: { ...user, password: "" } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
@@ -74,7 +74,7 @@ export const login = async (req: Request<{}, {}, Prisma.userCreateInput>, res: R
 
     generateTokenAndSetCookie(user, res);
 
-    res.json({ message: "Logged in successfully" });
+    res.json({ user: { ...user, password: "" } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ message: "Something went wrong" });
