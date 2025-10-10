@@ -1,9 +1,26 @@
-import { ModeToggle } from "./components/theme/mode-toggle";
+import { useEffect } from "react";
+import { useAuthStore } from "./store/auth.store";
+import Layout from "./layout/Layout";
+import { Routes, Route } from "react-router";
+
+import HomePage from "./pages/HomePage";
+import LoginPage from "./pages/LoginPage";
+import RegisterPage from "./pages/RegisterPage";
 
 export default function App() {
+  const { isInitialized, checkUser, user } = useAuthStore();
+
+  useEffect(() => {
+    if (!isInitialized) checkUser();
+  }, [isInitialized]);
+
   return (
-    <div className="p-4">
-      <ModeToggle />
-    </div>
+    <Routes>
+      <Route path="/" element={<Layout />}>
+        <Route index element={<HomePage />} />
+        <Route path="login" element={user ? <HomePage /> : <LoginPage />} />
+        <Route path="register" element={user ? <HomePage /> : <RegisterPage />} />
+      </Route>
+    </Routes>
   );
 }
