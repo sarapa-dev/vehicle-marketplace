@@ -6,6 +6,7 @@ import { Routes, Route } from "react-router";
 import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import CreateListingPage from "./pages/CreateListingPage";
 
 export default function App() {
   const { isInitialized, checkUser, user } = useAuthStore();
@@ -20,6 +21,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="login" element={user ? <HomePage /> : <LoginPage />} />
         <Route path="register" element={user ? <HomePage /> : <RegisterPage />} />
+        <Route path="create-listing" element={user ? <CreateListingPage /> : <HomePage />} />
       </Route>
     </Routes>
   );

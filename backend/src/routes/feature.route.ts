@@ -3,10 +3,11 @@ import prisma from "../lib/prisma";
 
 const router = Router();
 
-router.get("/", async (_req: Request, res: Response) => {
+router.get("/:id", async (req: Request, res: Response) => {
+  const { id } = req.params;
   try {
     const categories = await prisma.category.findMany({
-      where: { parent__category_id: null },
+      where: { category_id: Number(id), parent__category_id: null },
       omit: { parent__category_id: true },
       include: {
         feature: {
