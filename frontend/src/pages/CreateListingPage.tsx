@@ -16,10 +16,20 @@ import { toast } from "sonner";
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string({ error: "Description is required" }),
+  year: z
+    .number({ error: "Year is required" })
+    .max(new Date().getFullYear(), "Year cannot be in the future"),
+  mileage: z.number({ error: "Mileage is required" }),
   category_id: z.number({ error: "Category is required" }),
   parent_category_id: z.number().optional(),
-  manufacturer_id: z.number(),
-  engine_id: z.number(),
+  manufacturer_id: z.number({ error: "Manufacturer is required" }),
+  displacement: z.number({ error: "Displacement is required" }),
+  fuel: z.enum(["petrol", "diesel", "hybrid", "electric"], { error: "Fuel type is required" }),
+  horsepower: z.number({ error: "Horsepower is required" }),
+  euro_standard: z.enum(["EURO 4", "EURO 5", "EURO 6", "EURO 7"], {
+    error: "Euro standard is required",
+  }),
+  transmission: z.enum(["manual", "automatic"], { error: "Transmission type is required" }),
   features: z.array(z.number()).nonempty("Select at least one feature"),
   price: z.number().min(10, { error: "Price must be at least 10" }),
   image: z.string().min(1, "Image is required"),
@@ -45,9 +55,9 @@ export default function CreateListingPage() {
     try {
       // Remove parent_category_id, since it's not needed for backend
       const { parent_category_id, ...submitData } = data;
-      await axiosInstance.post("/listings", submitData);
+      const res = await axiosInstance.post<{ message: string }>("/listings", submitData);
 
-      toast.success("Listing created successfully!", {
+      toast.success(res.data.message, {
         position: "top-left",
       });
       navigate("/");

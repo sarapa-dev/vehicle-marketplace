@@ -5,25 +5,51 @@ import cloudinary from "../lib/cloudinary";
 interface CreateListingBody {
   title: string;
   description: string;
+  year: number;
+  mileage: number;
   category_id: number;
   manufacturer_id: number;
-  engine_id: number;
+  displacement: number;
+  fuel: "petrol" | "diesel" | "hybrid" | "electric";
+  horsepower: number;
+  euro_standard: string;
+  transmission: "manual" | "automatic";
   features: number[];
   price: number;
   image: string;
 }
 
 export const createListing = async (req: Request<{}, {}, CreateListingBody>, res: Response) => {
-  const { title, description, category_id, manufacturer_id, engine_id, features, price, image } =
-    req.body;
+  const {
+    title,
+    description,
+    year,
+    mileage,
+    category_id,
+    manufacturer_id,
+    displacement,
+    fuel,
+    horsepower,
+    euro_standard,
+    transmission,
+    features,
+    price,
+    image,
+  } = req.body;
 
   try {
     if (
       !title ||
       !description ||
+      !year ||
+      !mileage ||
       !category_id ||
       !manufacturer_id ||
-      !engine_id ||
+      !displacement ||
+      !fuel ||
+      !horsepower ||
+      !euro_standard ||
+      !transmission ||
       !Array.isArray(features) ||
       features.length === 0 ||
       !price ||
@@ -64,6 +90,10 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
       return res.status(400).json({ message: "Please choose an adequate subcategory" });
     }
 
+    if (new Date().getFullYear() < Number(year)) {
+      return res.status(400).json({ message: "Year cannot be in the future" });
+    }
+
     // TODO: Add array of images upload feature
     const uploadedImage = await cloudinary.uploader.upload(image, {
       folder: "vehicle_marketplace",
@@ -73,11 +103,39 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
     });
 
     // DOCS: https://www.prisma.io/docs/orm/prisma-client/queries/transactions#interactive-transactions
-    const result = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
+      const engine = await tx.engine.findFirst({
+        where: {
+          manufacturer_id: Number(manufacturer_id),
+          displacement: Number(displacement),
+          fuel,
+          horsepower: Number(horsepower),
+          euro_standard,
+          transmission,
+        },
+      });
+
+      const engine_id = engine
+        ? engine.engine_id
+        : (
+            await tx.engine.create({
+              data: {
+                manufacturer_id: Number(manufacturer_id),
+                displacement: Number(displacement),
+                fuel,
+                horsepower: Number(horsepower),
+                euro_standard,
+                transmission,
+              },
+            })
+          ).engine_id;
+
       const newListing = await tx.listing.create({
         data: {
           title,
           description,
+          year: Number(year),
+          mileage: Number(mileage),
           user_id: userId,
           engine_id: Number(engine_id),
           manufacturer_id: Number(manufacturer_id),
@@ -109,7 +167,7 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
       return newListing;
     });
 
-    return res.status(201).json({ message: "Listing created successfully", listing: result });
+    return res.status(201).json({ message: "Listing created successfully" });
   } catch (error) {
     console.error("Error creating listing:", error);
     return res.status(500).json({ message: "Something went wrong" });

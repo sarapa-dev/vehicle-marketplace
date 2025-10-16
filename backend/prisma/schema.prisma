@@ -17,7 +17,7 @@ model category {
   category_id         Int        @id @default(autoincrement()) @db.UnsignedInt
   name                String     @unique(map: "uq_category_name") @db.VarChar(50)
   parent__category_id Int?       @db.UnsignedInt
-  category            category?  @relation("categoryTocategory", fields: [parent__category_id], references: [category_id], onDelete: NoAction, onUpdate: NoAction, map: "fk_category_parent__category_id")
+  category            category?  @relation("categoryTocategory", fields: [parent__category_id], references: [category_id], onDelete: Restrict, map: "fk_category_parent__category_id")
   other_category      category[] @relation("categoryTocategory")
   feature             feature[]
   listing             listing[]
@@ -26,13 +26,18 @@ model category {
 }
 
 model engine {
-  engine_id     Int                 @id @default(autoincrement()) @db.UnsignedInt
-  displacement  Int?                @db.UnsignedInt
-  fuel          engine_fuel
-  horsepower    Int                 @db.UnsignedInt
-  euro_standard String              @db.VarChar(10)
-  transmission  engine_transmission
-  listing       listing[]
+  engine_id       Int                 @id @default(autoincrement()) @db.UnsignedInt
+  manufacturer_id Int                 @db.UnsignedInt
+  displacement    Int?                @db.UnsignedInt
+  fuel            engine_fuel
+  horsepower      Int                 @db.UnsignedInt
+  euro_standard   String              @db.VarChar(10)
+  transmission    engine_transmission
+  manufacturer    manufacturer        @relation(fields: [manufacturer_id], references: [manufacturer_id], map: "fk_engine_manufacturer_id")
+  listing         listing[]
+
+  @@unique([manufacturer_id, displacement, fuel, horsepower, euro_standard, transmission], map: "uq_engine")
+  @@index([manufacturer_id], map: "fk_engine_manufacturer_id")
 }
 
 model favorite {
@@ -65,8 +70,10 @@ model listing {
   manufacturer_id Int               @db.UnsignedInt
   engine_id       Int               @db.UnsignedInt
   title           String            @db.VarChar(255)
-  is_promoted     Boolean           @default(false)
+  year            Int               @db.UnsignedInt
+  mileage         Int               @db.UnsignedInt
   description     String            @db.Text
+  is_promoted     Boolean           @default(false)
   status          listing_status    @default(active)
   favorite        favorite[]
   category        category          @relation(fields: [category_id], references: [category_id], map: "fk_listing_category_id")
@@ -123,7 +130,7 @@ model listing_sale {
   buyer_id                          Int?     @db.UnsignedInt
   sale_price                        Int      @db.UnsignedInt
   sold_at                           DateTime @default(dbgenerated("(now())")) @db.Timestamp(0)
-  user_listing_sale_buyer_idTouser  user?    @relation("listing_sale_buyer_idTouser", fields: [buyer_id], references: [user_id], map: "fk_listing_sale_buyer_id")
+  user_listing_sale_buyer_idTouser  user?    @relation("listing_sale_buyer_idTouser", fields: [buyer_id], references: [user_id], onDelete: Restrict, map: "fk_listing_sale_buyer_id")
   listing                           listing  @relation(fields: [listing_id], references: [listing_id], map: "fk_listing_sale_listing_id")
   user_listing_sale_seller_idTouser user     @relation("listing_sale_seller_idTouser", fields: [seller_id], references: [user_id], map: "fk_listing_sale_seller_id")
   review                            review[]
@@ -136,6 +143,7 @@ model listing_sale {
 model manufacturer {
   manufacturer_id Int       @id @default(autoincrement()) @db.UnsignedInt
   name            String    @db.VarChar(50)
+  engine          engine[]
   listing         listing[]
 }
 

@@ -12,8 +12,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useManufacturers } from "@/hooks/useManufacturer";
-import { useEngines } from "@/hooks/useEngine";
 import type { CreateListingFormData } from "@/pages/CreateListingPage";
+
+const fuels = ["petrol", "diesel", "hybrid", "electric"];
+const euro = ["EURO 4", "EURO 5", "EURO 6", "EURO 7"];
+const transmissions = ["manual", "automatic"];
 
 type Props = {
   onNext: () => void;
@@ -23,7 +26,6 @@ type Props = {
 const DetailsStep = ({ onNext, onBack }: Props) => {
   const { control } = useFormContext<CreateListingFormData>();
   const { manufacturers } = useManufacturers();
-  const { engines } = useEngines();
 
   return (
     <Card>
@@ -64,7 +66,7 @@ const DetailsStep = ({ onNext, onBack }: Props) => {
           )}
         />
 
-        <div className="grid gap-6 sm:grid-cols-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <FormField
             control={control}
             name="manufacturer_id"
@@ -98,28 +100,163 @@ const DetailsStep = ({ onNext, onBack }: Props) => {
 
           <FormField
             control={control}
-            name="engine_id"
+            name="fuel"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Engine</FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(Number(value))}
-                  value={field.value ? field.value.toString() : ""}
-                >
+                <FormLabel>Fuel Type</FormLabel>
+                <Select onValueChange={(value) => field.onChange(value)} value={field.value ?? ""}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select engine" />
+                      <SelectValue placeholder="Select type of fuel" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {engines?.map((engine) => (
-                      <SelectItem key={engine.engine_id} value={engine.engine_id.toString()}>
-                        {engine.displacement > 0 ? `${engine.displacement}cc` : "Electric"} -{" "}
-                        {engine.fuel} ({engine.horsepower}hp)
+                    {fuels.map((fuel) => (
+                      <SelectItem key={fuel} value={fuel}>
+                        {fuel}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="displacement"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Displacement</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter displacement"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="horsepower"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Horsepower</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter horsepower"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <FormField
+            control={control}
+            name="transmission"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Transmission</FormLabel>
+                <Select onValueChange={(value) => field.onChange(value)} value={field.value ?? ""}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select transmission" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {transmissions.map((transmission) => (
+                      <SelectItem key={transmission} value={transmission}>
+                        {transmission}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="euro_standard"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Euro standard</FormLabel>
+                <Select onValueChange={(value) => field.onChange(value)} value={field.value ?? ""}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select euro standard" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {euro.map((es) => (
+                      <SelectItem key={es} value={es}>
+                        {es}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="year"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Year</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter year"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="mileage"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mileage</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="Enter mileage"
+                    {...field}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                    }
+                    value={field.value ?? ""}
+                  />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
