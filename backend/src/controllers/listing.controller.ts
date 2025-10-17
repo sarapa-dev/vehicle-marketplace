@@ -16,7 +16,7 @@ interface CreateListingBody {
   transmission: "manual" | "automatic";
   features: number[];
   price: number;
-  image: string;
+  images: string[];
 }
 
 export const createListing = async (req: Request<{}, {}, CreateListingBody>, res: Response) => {
@@ -34,7 +34,7 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
     transmission,
     features,
     price,
-    image,
+    images,
   } = req.body;
 
   try {
@@ -53,14 +53,20 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
       !Array.isArray(features) ||
       features.length === 0 ||
       !price ||
-      !image
+      !images
     ) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    if (!images || !Array.isArray(images) || images.length === 0) {
+      return res.status(400).json({ message: "At least one image is required" });
+    }
+
     const base64Pattern = /^data:image\/(jpeg|jpg|png|webp|avif);base64,/;
-    if (!base64Pattern.test(image)) {
-      return res.status(400).json({ message: "Invalid or unsupported image format" });
+    for (const imgage of images) {
+      if (!base64Pattern.test(imgage)) {
+        return res.status(400).json({ message: "Invalid or unsupported image format" });
+      }
     }
 
     const userId = req.user.user_id;
@@ -94,13 +100,16 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
       return res.status(400).json({ message: "Year cannot be in the future" });
     }
 
-    // TODO: Add array of images upload feature
-    const uploadedImage = await cloudinary.uploader.upload(image, {
-      folder: "vehicle_marketplace",
-      resource_type: "image",
-      quality: "auto",
-      format: "avif",
-    });
+    const uploadedImages = await Promise.all(
+      images.map((image) =>
+        cloudinary.uploader.upload(image, {
+          folder: "vehicle_marketplace",
+          resource_type: "image",
+          quality: "auto",
+          format: "avif",
+        })
+      )
+    );
 
     // DOCS: https://www.prisma.io/docs/orm/prisma-client/queries/transactions#interactive-transactions
     await prisma.$transaction(async (tx) => {
@@ -150,11 +159,11 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
         },
       });
 
-      await tx.listing_photo.create({
-        data: {
+      await tx.listing_photo.createMany({
+        data: uploadedImages.map((image) => ({
           listing_id: newListing.listing_id,
-          url: uploadedImage.secure_url,
-        },
+          url: image.secure_url,
+        })),
       });
 
       const featureData = features.map((fid: number) => ({

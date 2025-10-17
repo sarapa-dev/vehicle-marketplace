@@ -46,7 +46,7 @@ export default function Footer() {
             <h3 className="font-semibold mb-4">Sell</h3>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li>
-                <Link to="#" className="hover:text-primary">
+                <Link to="/create-listing" className="hover:text-primary">
                   List Your Vehicle
                 </Link>
               </li>

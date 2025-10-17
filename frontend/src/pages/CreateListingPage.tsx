@@ -5,16 +5,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { axiosInstance } from "@/lib/axios";
+import { toast } from "sonner";
 
 import VehicleTypeStep from "@/forms/create-listing/VehicleTypeStep";
 import DetailsStep from "@/forms/create-listing/DetailsStep";
 import FeaturesStep from "@/forms/create-listing/FeaturesStep";
 import ImageUploadStep from "@/forms/create-listing/ImageUploadStep";
-import { axiosInstance } from "@/lib/axios";
-import { toast } from "sonner";
 
 const formSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string({ error: "Title is required" }).min(1),
   description: z.string({ error: "Description is required" }),
   year: z
     .number({ error: "Year is required" })
@@ -31,8 +31,8 @@ const formSchema = z.object({
   }),
   transmission: z.enum(["manual", "automatic"], { error: "Transmission type is required" }),
   features: z.array(z.number()).nonempty("Select at least one feature"),
-  price: z.number().min(10, { error: "Price must be at least 10" }),
-  image: z.string().min(1, "Image is required"),
+  price: z.number({ error: "Price is required" }),
+  images: z.array(z.string()).nonempty("Upload at least one image"),
 });
 
 export type CreateListingFormData = z.infer<typeof formSchema>;
@@ -46,7 +46,7 @@ export default function CreateListingPage() {
     shouldUnregister: false,
     defaultValues: {
       features: [],
-      image: "",
+      images: [],
     },
   });
 
