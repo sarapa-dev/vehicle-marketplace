@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuthStore } from "@/store/auth.store";
-import { Car, Heart, LogOut, Plus, User } from "lucide-react";
+import { Car, Heart, LogOut, Plus, User, Zap } from "lucide-react";
 import { Link } from "react-router";
 import { ModeToggle } from "../theme/mode-toggle";
 
@@ -63,6 +63,12 @@ export default function Header() {
                     <Link to="/profile" className="cursor-pointer">
                       <User className="mr-2 size-4" />
                       Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/subscription" className="cursor-pointer">
+                      <Zap className="mr-2 size-4" />
+                      Upgrade Plan
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>

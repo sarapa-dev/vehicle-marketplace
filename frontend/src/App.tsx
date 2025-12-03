@@ -7,6 +7,9 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CreateListingPage from "./pages/CreateListingPage";
+import SubscriptionPage from "./pages/SubscriptionPage";
+import SuccessPage from "./pages/SuccessPage";
+import CancelPage from "./pages/CancelPage";
 
 export default function App() {
   const { isInitialized, checkUser, user } = useAuthStore();
@@ -22,6 +25,11 @@ export default function App() {
         <Route path="login" element={user ? <HomePage /> : <LoginPage />} />
         <Route path="register" element={user ? <HomePage /> : <RegisterPage />} />
         <Route path="create-listing" element={user ? <CreateListingPage /> : <HomePage />} />
+        <Route path="subscription">
+          <Route index element={user ? <SubscriptionPage /> : <HomePage />} />
+          <Route path="success" index element={user ? <SuccessPage /> : <HomePage />} />
+          <Route path="cancel" element={user ? <CancelPage /> : <HomePage />} />
+        </Route>
       </Route>
     </Routes>
   );

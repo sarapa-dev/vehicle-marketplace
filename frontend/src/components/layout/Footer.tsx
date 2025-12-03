@@ -96,7 +96,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} AutoMarket. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Vehicle Marketplace All rights reserved.</p>
         </div>
       </div>
     </footer>
