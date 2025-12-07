@@ -4,7 +4,7 @@ import prisma from "../lib/prisma";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
 
-export const getSubscriptionPlans = async (req: Request, res: Response) => {
+export const getSubscriptionPlans = async (_req: Request, res: Response) => {
   try {
     const plans = await prisma.subscription_plan.findMany({
       omit: {
@@ -18,16 +18,59 @@ export const getSubscriptionPlans = async (req: Request, res: Response) => {
   }
 };
 
-export const createCheckoutSession = async (req: Request, res: Response) => {
+export const getSubscriptionPlan = async (req: Request, res: Response) => {
   try {
     const userId = req.user.user_id;
+
+    const plan = await prisma.user_subscription.findFirst({
+      where: { user_id: userId },
+      omit: {
+        user_id: true,
+        subscription_plan_id: true,
+        stripe_customer_id: true,
+        stripe_subscription_id: true,
+      },
+      include: {
+        subscription_plan: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.json(plan);
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export const createCheckoutSession = async (
+  req: Request<{}, {}, { subscription_plan_id: number }>,
+  res: Response
+) => {
+  try {
+    const userId = req.user.user_id;
+    const { subscription_plan_id } = req.body;
+
+    const plan = await prisma.subscription_plan.findUnique({
+      where: { subscription_plan_id },
+    });
+
+    if (!plan) {
+      return res.status(400).json({ message: "Plan not found" });
+    }
+
+    if (!plan.stripe_price_id) {
+      return res.status(500).json({ message: "Plan missing Stripe price ID" });
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       customer_email: req.user.email,
       line_items: [
         {
-          price: process.env.STRIPE_PREMIUM_PRICE_ID!,
+          price: plan.stripe_price_id,
           quantity: 1,
         },
       ],
@@ -35,6 +78,7 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
       cancel_url: `${process.env.FRONTEND_URL}/subscription/cancel`,
       metadata: {
         userId: String(userId),
+        subscriptionPlanId: String(subscription_plan_id),
       },
     });
 
@@ -43,8 +87,6 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to create checkout session" });
   }
 };
-
-const PREMIUM_PLAN_ID = 2;
 
 export const subscriptionWebhook = async (req: Request, res: Response) => {
   let event: Stripe.Event;
@@ -62,6 +104,7 @@ export const subscriptionWebhook = async (req: Request, res: Response) => {
         const session = event.data.object;
 
         const userId = Number(session.metadata?.userId);
+        const subscriptionPlanId = Number(session.metadata?.subscriptionPlanId);
         const subscriptionId = session.subscription as string;
         const customerId = session.customer as string;
 
@@ -82,7 +125,7 @@ export const subscriptionWebhook = async (req: Request, res: Response) => {
         await prisma.user_subscription.update({
           where: { user_subscription_id: existing!.user_subscription_id },
           data: {
-            subscription_plan_id: PREMIUM_PLAN_ID,
+            subscription_plan_id: subscriptionPlanId,
             stripe_customer_id: customerId,
             stripe_subscription_id: subscriptionId,
             status: "active",
@@ -108,6 +151,6 @@ export const subscriptionWebhook = async (req: Request, res: Response) => {
 
     return res.sendStatus(200);
   } catch (err) {
-    res.status(500).json({ message: "Something went wrong" });
+    res.status(500).json({ message: "Webhook processing failed" });
   }
 };
