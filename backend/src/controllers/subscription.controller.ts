@@ -18,6 +18,33 @@ export const getSubscriptionPlans = async (_req: Request, res: Response) => {
   }
 };
 
+export const getSubscriptionPlan = async (req: Request, res: Response) => {
+  try {
+    const userId = req.user.user_id;
+
+    const plan = await prisma.user_subscription.findFirst({
+      where: { user_id: userId },
+      omit: {
+        user_id: true,
+        subscription_plan_id: true,
+        stripe_customer_id: true,
+        stripe_subscription_id: true,
+      },
+      include: {
+        subscription_plan: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
+
+    res.json(plan);
+  } catch (error) {
+    res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
 export const createCheckoutSession = async (
   req: Request<{}, {}, { subscription_plan_id: number }>,
   res: Response

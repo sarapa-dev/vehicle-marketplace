@@ -3,13 +3,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { CheckCircle2 } from "lucide-react";
 import { axiosInstance } from "@/lib/axios";
-import type { SubscriptionPlan } from "@/types/subscription";
+import type { SubscriptionPlan, CurrentSubscription } from "@/types/subscription";
 
 function SubscriptionPage() {
   const { data: plans, error } = useQuery<SubscriptionPlan[]>({
     queryKey: ["subscriptionPlans"],
     queryFn: async () => {
       const res = await axiosInstance.get<SubscriptionPlan[]>("/subscription");
+      return res.data;
+    },
+  });
+
+  const { data: currentSubscription } = useQuery<CurrentSubscription>({
+    queryKey: ["currentSubscription"],
+    queryFn: async () => {
+      const res = await axiosInstance.get<CurrentSubscription>("/subscription/current");
       return res.data;
     },
   });
@@ -51,6 +59,7 @@ function SubscriptionPage() {
 
         <div className="grid md:grid-cols-3 gap-8 lg:gap-6 max-w-6xl mx-auto">
           {plans.map((plan) => {
+            const isCurrentPlan = currentSubscription?.subscription_plan?.name === plan.name;
             const isPremium = plan.name === "Premium";
 
             return (
@@ -138,12 +147,16 @@ function SubscriptionPage() {
                     )}
                   </div>
 
-                  {plan.name === "Free" ? (
+                  {isCurrentPlan ? (
                     <Button variant="outline" className="w-full bg-transparent" disabled>
-                      Current Plan
+                      Your Current Plan
                     </Button>
                   ) : (
                     <Button
+                      disabled={
+                        plan.name === "Free" &&
+                        currentSubscription?.subscription_plan?.name !== "Free"
+                      }
                       className={`w-full ${
                         isPremium
                           ? "bg-primary hover:bg-primary/90"
@@ -151,7 +164,7 @@ function SubscriptionPage() {
                       }`}
                       onClick={() => handleSubscribe(plan.subscription_plan_id)}
                     >
-                      {plan.name === "Basic" ? "Upgrade to Basic" : "Upgrade to Premium"}
+                      {plan.name === "Free" ? "Downgrade" : `Upgrade to ${plan.name}`}
                     </Button>
                   )}
                 </CardContent>
