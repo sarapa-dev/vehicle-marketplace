@@ -85,11 +85,10 @@ export const getRecentlySoldListings = async (_req: Request, res: Response) => {
         title: true,
         year: true,
         listing_photo: { select: { listing_photo_id: true, url: true }, take: 1 },
-        listing_sale: {
-          select: {
-            sale_price: true,
-            sold_at: true,
-          },
+        listing_price: {
+          select: { listing_price_id: true, price: true },
+          orderBy: { created_at: "desc" },
+          take: 1,
         },
       },
     });
