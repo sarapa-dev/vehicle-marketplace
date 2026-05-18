@@ -8,10 +8,10 @@ export const useManufacturers = () => {
     return res.data;
   };
 
-  const { data: manufacturers } = useQuery<Manufacturer[]>({
+  const { data: manufacturers = [], isLoading } = useQuery<Manufacturer[]>({
     queryKey: ["manufacturers"],
     queryFn: getManufacturers,
   });
 
-  return { manufacturers };
+  return { manufacturers, isLoading };
 };

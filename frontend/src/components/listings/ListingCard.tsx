@@ -1,7 +1,8 @@
 import { Link } from "react-router";
 import { Calendar, Gauge, Fuel, Settings2, TrendingDown, Crown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { BaseListing, SearchListing } from "@/types/listings";
+import type { SearchListing, AnyListing } from "@/types/listings";
+import { isSoldListing } from "@/types/listings";
 
 const formatPrice = (price: number) => new Intl.NumberFormat("de-DE").format(price) + " €";
 
@@ -12,7 +13,7 @@ const calcDiscountPercent = (original: number, current: number) =>
 
 interface GridCardProps {
   variant: "grid";
-  listing: BaseListing;
+  listing: AnyListing;
   showDiscount?: boolean;
   isSold?: boolean;
   className?: string;
@@ -27,10 +28,11 @@ interface HorizontalCardProps {
 type ListingCardProps = GridCardProps | HorizontalCardProps;
 
 const GridCard = ({ listing, showDiscount, isSold, className }: Omit<GridCardProps, "variant">) => {
-  const imageUrl = listing.listing_photo[0]?.url ?? "/placeholder-car.jpg";
+  const imageUrl = listing.listing_photo?.[0]?.url ?? "/placeholder-car.jpg";
 
-  const currentPrice = listing.listing_price?.[0]?.price;
-  const originalPrice = listing.listing_price?.[1]?.price;
+  const sold = isSoldListing(listing);
+  const currentPrice = sold ? listing.listing_sale.sale_price : listing.listing_price?.[0]?.price;
+  const originalPrice = !sold ? listing.listing_price?.[1]?.price : undefined;
 
   const discountPercent =
     showDiscount && originalPrice && currentPrice
@@ -102,19 +104,19 @@ const GridCard = ({ listing, showDiscount, isSold, className }: Omit<GridCardPro
 
 // used for search results page - with extended fields
 const HorizontalCard = ({ listing, className }: Omit<HorizontalCardProps, "variant">) => {
-  const imageUrl = listing.listing_photo[0]?.url ?? "/placeholder-car.jpg";
-  const currentPrice = listing.listing_price[0]?.price;
+  const imageUrl = listing.listing_photo?.[0]?.url ?? "/placeholder-car.jpg";
+  const currentPrice = listing.listing_price?.[0]?.price;
 
   return (
     <Link
       to={`/listings/${listing.listing_id}`}
       className={cn(
-        "group flex rounded-xl overflow-hidden border border-border bg-card",
+        "group flex flex-col sm:flex-row rounded-xl overflow-hidden border border-border bg-card",
         "transition-all duration-200 hover:border-border/80 hover:shadow-xl hover:shadow-black/30",
         className,
       )}
     >
-      <div className="relative w-48 shrink-0 overflow-hidden bg-muted sm:w-56">
+      <div className="relative w-full aspect-video sm:aspect-auto sm:w-56 lg:w-64 shrink-0 overflow-hidden bg-muted">
         <img
           src={imageUrl}
           alt={listing.title}
@@ -132,47 +134,46 @@ const HorizontalCard = ({ listing, className }: Omit<HorizontalCardProps, "varia
       </div>
 
       <div className="flex flex-1 flex-col justify-between p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="text-base font-semibold text-foreground leading-snug group-hover:text-foreground/80 transition-colors">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground truncate">{listing.manufacturer?.name}</p>
+            <h3 className="mt-0.5 text-base font-semibold text-foreground leading-snug group-hover:text-foreground/80 transition-colors">
               {listing.title}
             </h3>
             <p className="mt-0.5 text-sm text-muted-foreground">{listing.year}</p>
           </div>
 
-          <div className="shrink-0 text-right">
-            <p className="text-xl font-bold text-foreground">
-              {currentPrice ? formatPrice(currentPrice) : "Price on request"}
-            </p>
-          </div>
+          <p className="shrink-0 text-lg font-bold text-foreground sm:text-xl">
+            {currentPrice ? formatPrice(currentPrice) : "On request"}
+          </p>
         </div>
 
-        <div className="mt-3 flex flex-wrap gap-3">
+        <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5">
           {listing.mileage !== undefined && (
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
               <Gauge className="size-4 shrink-0" />
               {formatMileage(listing.mileage)}
             </span>
           )}
-          {listing.fuel && (
+          {listing.engine?.fuel && (
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground capitalize">
               <Fuel className="size-4 shrink-0" />
-              {listing.fuel}
+              {listing.engine.fuel}
             </span>
           )}
-          {listing.transmission && (
+          {listing.engine?.transmission && (
             <span className="flex items-center gap-1.5 text-sm text-muted-foreground capitalize">
               <Settings2 className="size-4 shrink-0" />
-              {listing.transmission}
+              {listing.engine.transmission}
             </span>
           )}
-          {listing.engine_displacement && (
+          {listing.engine?.displacement && (
             <span className="text-sm text-muted-foreground">
-              {(listing.engine_displacement / 1000).toFixed(1)}L
+              {(listing.engine.displacement / 1000).toFixed(1)}L
             </span>
           )}
-          {listing.engine_horsepower && (
-            <span className="text-sm text-muted-foreground">{listing.engine_horsepower} hp</span>
+          {listing.engine?.horsepower && (
+            <span className="text-sm text-muted-foreground">{listing.engine.horsepower} hp</span>
           )}
         </div>
       </div>

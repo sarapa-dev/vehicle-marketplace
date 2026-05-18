@@ -1,6 +1,7 @@
 export interface Category {
   category_id: number;
   name: string;
+  parent__category_id?: number | null;
 }
 
 export interface Subcategory extends Category {

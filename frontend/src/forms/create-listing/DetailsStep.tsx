@@ -57,7 +57,7 @@ const DetailsStep = ({ onNext, onBack }: Props) => {
               <FormControl>
                 <Textarea
                   placeholder="Describe your vehicle's condition, features, and history..."
-                  className="min-h-[120px]"
+                  className="min-h-30"
                   {...field}
                 />
               </FormControl>
