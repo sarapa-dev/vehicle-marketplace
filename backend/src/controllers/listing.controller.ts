@@ -1,6 +1,113 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import cloudinary from "../lib/cloudinary";
+import { Prisma } from "@prisma/client";
+
+interface SearchListingQuery {
+  category_id?: string;
+  manufacturer_id?: string;
+  price_min?: string;
+  price_max?: string;
+  year_from?: string;
+  year_to?: string;
+  fuel?: string;
+  transmission?: string;
+  page?: string;
+  limit?: string;
+}
+
+export const searchListings = async (
+  req: Request<{}, {}, {}, SearchListingQuery>,
+  res: Response,
+) => {
+  try {
+    const {
+      category_id,
+      manufacturer_id,
+      price_min,
+      price_max,
+      year_from,
+      year_to,
+      fuel,
+      transmission,
+      page = "1",
+      limit = "20",
+    } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page));
+    const limitNum = Math.min(50, Math.max(1, parseInt(limit)));
+    const skip = (pageNum - 1) * limitNum;
+
+    const where: Prisma.listingWhereInput = {
+      status: "active",
+      ...(category_id && { category_id: parseInt(category_id) }),
+      ...(manufacturer_id && { manufacturer_id: parseInt(manufacturer_id) }),
+      ...((year_from || year_to) && {
+        year: {
+          ...(year_from && { gte: parseInt(year_from) }),
+          ...(year_to && { lte: parseInt(year_to) }),
+        },
+      }),
+      // TODO: add is_latest field to listing_price table
+      ...((price_min || price_max) && {
+        listing_price: {
+          some: {
+            price: {
+              ...(price_min && { gte: parseInt(price_min) }),
+              ...(price_max && { lte: parseInt(price_max) }),
+            },
+          },
+        },
+      }),
+      ...((fuel || transmission) && {
+        engine: {
+          ...(fuel && { fuel: fuel as Prisma.Enumengine_fuelFilter }),
+          ...(transmission && {
+            transmission: transmission as Prisma.Enumengine_transmissionFilter,
+          }),
+        },
+      }),
+    };
+
+    const [listings, total] = await Promise.all([
+      prisma.listing.findMany({
+        where,
+        skip,
+        take: limitNum,
+        orderBy: { listing_id: "desc" },
+        select: {
+          listing_id: true,
+          title: true,
+          year: true,
+          mileage: true,
+          is_promoted: true,
+          listing_photo: { select: { listing_photo_id: true, url: true }, take: 1 },
+          listing_price: {
+            select: { listing_price_id: true, price: true },
+            orderBy: { created_at: "desc" },
+            take: 1,
+          },
+          manufacturer: { select: { name: true } },
+          engine: {
+            select: { fuel: true, transmission: true, displacement: true, horsepower: true },
+          },
+        },
+      }),
+      prisma.listing.count({ where }),
+    ]);
+
+    return res.json({
+      data: listings,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+    });
+  } catch (error) {
+    console.error("Error searching listings:", error);
+    return res.status(500).json({ message: "Failed to search listings" });
+  }
+};
 
 export const getFeaturedListings = async (_req: Request, res: Response) => {
   try {
