@@ -1,3 +1,8 @@
+import type { Category, Feature } from "./categories";
+import type { Engine } from "./engine";
+import type { Manufacturer } from "./manufacturer";
+import type { UserProfile } from "./user";
+
 export interface ListingPhoto {
   listing_photo_id: number;
   url: string;
@@ -6,6 +11,7 @@ export interface ListingPhoto {
 export interface ListingPrice {
   listing_price_id: number;
   price: number;
+  created_at?: string;
 }
 
 // Featured + discounted endpoints
@@ -46,4 +52,26 @@ export interface SearchListing extends BaseListing {
     displacement: number | null;
     horsepower: number;
   };
+}
+
+export interface ListingFeature {
+  listing_feature_id: number;
+  feature: Feature;
+}
+
+export interface ListingDetail {
+  listing_id: number;
+  title: string;
+  year: number;
+  mileage: number;
+  description: string;
+  is_promoted: boolean;
+  status: string;
+  user: UserProfile;
+  category: Omit<Category, "parent__category_id">;
+  manufacturer: Manufacturer;
+  engine: Engine;
+  listing_feature: ListingFeature[];
+  listing_price: ListingPrice[];
+  listing_photo: ListingPhoto[];
 }

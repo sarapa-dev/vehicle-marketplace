@@ -8,3 +8,5 @@ export interface User {
   postal_address?: string;
   created_at: string;
 }
+
+export type UserProfile = Omit<User, "password">;

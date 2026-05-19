@@ -3,10 +3,7 @@ import { Calendar, Gauge, Fuel, Settings2, TrendingDown, Crown } from "lucide-re
 import { cn } from "@/lib/utils";
 import type { SearchListing, AnyListing } from "@/types/listings";
 import { isSoldListing } from "@/types/listings";
-
-const formatPrice = (price: number) => new Intl.NumberFormat("de-DE").format(price) + " €";
-
-const formatMileage = (km: number) => new Intl.NumberFormat("de-DE").format(km) + " km";
+import { formatPrice, formatMileage } from "@/lib/formatters";
 
 const calcDiscountPercent = (original: number, current: number) =>
   Math.round(((original - current) / original) * 100);
