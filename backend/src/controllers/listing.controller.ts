@@ -3,6 +3,57 @@ import prisma from "../lib/prisma";
 import cloudinary from "../lib/cloudinary";
 import { Prisma } from "@prisma/client";
 
+export const getListingById = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const listingId = Number(id);
+
+    if (isNaN(listingId)) {
+      return res.status(400).json({
+        message: "Invalid listing id",
+      });
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { listing_id: listingId },
+      include: {
+        user: { omit: { password: true } },
+        category: { omit: { parent__category_id: true } },
+        manufacturer: true,
+        engine: { omit: { manufacturer_id: true } },
+        listing_feature: {
+          select: {
+            listing_feature_id: true,
+            feature: { select: { feature_id: true, name: true } },
+          },
+        },
+        listing_price: {
+          orderBy: {
+            created_at: "desc",
+          },
+          omit: { listing_id: true },
+          take: 1,
+        },
+        listing_photo: { omit: { listing_id: true } },
+      },
+      omit: {
+        user_id: true,
+        category_id: true,
+        manufacturer_id: true,
+        engine_id: true,
+      },
+    });
+
+    if (!listing) return res.status(404).json({ message: `Listing with id: ${id} not found.` });
+
+    return res.json(listing);
+  } catch (error) {
+    console.error("Error fetching details about listing:", error);
+    return res.status(500).json({ message: "Failed to fetch details about vehicle" });
+  }
+};
+
 interface SearchListingQuery {
   category_id?: string;
   manufacturer_id?: string;
