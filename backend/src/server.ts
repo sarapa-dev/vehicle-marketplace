@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import "dotenv/config";
 
 import authRoute from "./routes/auth.route";
+import userRoute from "./routes/user.route";
 import listingRoute from "./routes/listing.route";
 import categoryRoutes from "./routes/category.route";
 import manufacturerRoutes from "./routes/manufacturer.route";
@@ -28,6 +29,7 @@ app.use((req, res, next) => {
 app.use(cookieParser());
 
 app.use("/api/auth", authRoute);
+app.use("/api/user", userRoute);
 app.use("/api/listings", listingRoute);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/manufacturers", manufacturerRoutes);
