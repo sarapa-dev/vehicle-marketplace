@@ -1,7 +1,7 @@
 import { axiosInstance } from "@/lib/axios";
-import type { UserProfile } from "@/types/user";
 import type { SearchListing } from "@/types/listings";
-import { useQuery } from "@tanstack/react-query";
+import type { UpdateUserProfilePayload, UserProfile } from "@/types/user";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useUserProfile = (userId: string | number) => {
   const getUserProfile = async (): Promise<UserProfile> => {
@@ -20,6 +20,24 @@ export const useUserProfile = (userId: string | number) => {
   });
 
   return { userProfile, isLoading, error };
+};
+
+export const useUpdateUserProfile = (userId: string | number) => {
+  const queryClient = useQueryClient();
+
+  const updateProfile = async (data: UpdateUserProfilePayload): Promise<UserProfile> => {
+    const res = await axiosInstance.put<UserProfile>(`/user/profile/${userId}`, data);
+    return res.data;
+  };
+
+  const { mutate, isPending, isError, isSuccess } = useMutation({
+    mutationFn: updateProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["userProfile", userId] });
+    },
+  });
+
+  return { updateProfile: mutate, isPending, isError, isSuccess };
 };
 
 export const useUserListings = (userId: string | number) => {

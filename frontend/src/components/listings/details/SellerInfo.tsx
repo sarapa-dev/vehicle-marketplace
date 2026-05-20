@@ -76,7 +76,7 @@ export function SellerInfo({ user, listingTitle }: SellerInfoProps) {
             </div>
           </div>
 
-          <Link to={`/seller/${user.user_id}/listings`} target="_blank">
+          <Link to={`/seller/${user.user_id}/listings`}>
             <Button variant="outline" className="w-full cursor-pointer">
               <ExternalLink className="mr-2 size-4" />
               View All Listings

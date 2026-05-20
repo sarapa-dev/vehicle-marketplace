@@ -10,3 +10,10 @@ export interface User {
 }
 
 export type UserProfile = Omit<User, "password">;
+
+export interface UpdateUserProfilePayload {
+  first_name: string;
+  last_name: string;
+  phone_number?: string | null;
+  postal_address?: string | null;
+}
