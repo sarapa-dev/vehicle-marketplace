@@ -13,6 +13,7 @@ import {
   CheckCircle,
 } from "lucide-react";
 import type { UserProfile } from "@/types/user";
+import { Link } from "react-router";
 
 interface SellerInfoProps {
   user: UserProfile;
@@ -75,17 +76,19 @@ export function SellerInfo({ user, listingTitle }: SellerInfoProps) {
             </div>
           </div>
 
-          <Button variant="outline" className="w-full">
-            <ExternalLink className="mr-2 size-4" />
-            View All Listings
-          </Button>
+          <Link to={`/seller/${user.user_id}/listings`} target="_blank">
+            <Button variant="outline" className="w-full cursor-pointer">
+              <ExternalLink className="mr-2 size-4" />
+              View All Listings
+            </Button>
+          </Link>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="flex items-center gap-2 text-lg">
-            <MessageSquare className="h-5 w-5" />
+            <MessageSquare className="size-5" />
             Contact Seller
           </CardTitle>
         </CardHeader>

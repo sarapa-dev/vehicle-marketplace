@@ -7,11 +7,12 @@ import HomePage from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import CreateListingPage from "./pages/CreateListingPage";
+import ListingDetailPage from "./pages/ListingDetailPage";
+import SellerListingsPage from "./pages/SellerListingsPage";
 import SubscriptionPage from "./pages/SubscriptionPage";
 import SuccessPage from "./pages/SuccessPage";
 import CancelPage from "./pages/CancelPage";
 import SearchPage from "./pages/SearchPage";
-import ListingDetailPage from "./pages/ListingDetailPage";
 
 export default function App() {
   const { isInitialized, checkUser, user } = useAuthStore();
@@ -26,6 +27,7 @@ export default function App() {
         <Route index element={<HomePage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="listings/:id" element={<ListingDetailPage />} />
+        <Route path="seller/:id/listings" element={<SellerListingsPage />} />
         <Route path="login" element={user ? <HomePage /> : <LoginPage />} />
         <Route path="register" element={user ? <HomePage /> : <RegisterPage />} />
         <Route path="create-listing" element={user ? <CreateListingPage /> : <HomePage />} />

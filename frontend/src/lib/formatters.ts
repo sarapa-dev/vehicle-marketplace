@@ -9,3 +9,11 @@ export const formatDisplacement = (cc: number) => {
 export const capitalizeFirst = (str: string) => {
   return str.charAt(0).toUpperCase() + str.slice(1);
 };
+
+export const formatDate = (dateString: string): string => {
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+};
