@@ -25,6 +25,44 @@ export const getUserProfile = async (req: Request<{ user_id: string }>, res: Res
   }
 };
 
+export const updateUserProfile = async (req: Request<{ user_id: string }>, res: Response) => {
+  try {
+    const userId = Number(req.params.user_id);
+
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: "Invalid user id" });
+    }
+
+    if (req.user.user_id !== userId) {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    const { first_name, last_name, phone_number, postal_address } = req.body;
+
+    const updatedUser = await prisma.user.update({
+      where: {
+        user_id: userId,
+      },
+      data: {
+        first_name,
+        last_name,
+        phone_number,
+        postal_address,
+      },
+      omit: {
+        password: true,
+      },
+    });
+
+    return res.json(updatedUser);
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return res.status(500).json({
+      message: "Failed to update user profile",
+    });
+  }
+};
+
 export const getUserListings = async (req: Request<{ user_id: string }>, res: Response) => {
   try {
     const userId = Number(req.params.user_id);
