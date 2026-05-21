@@ -10,6 +10,7 @@ import categoryRoutes from "./routes/category.route";
 import manufacturerRoutes from "./routes/manufacturer.route";
 import engineRoutes from "./routes/engine.route";
 import featureRoutes from "./routes/feature.route";
+import favoriteRoute from "./routes/favorite.route";
 import subscriptionRoutes from "./routes/subscription.route";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/manufacturers", manufacturerRoutes);
 app.use("/api/engines", engineRoutes);
 app.use("/api/features", featureRoutes);
+app.use("/api/favorites", favoriteRoute);
 app.use("/api/subscription", subscriptionRoutes);
 
 app.listen(PORT, () => {
