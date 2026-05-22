@@ -47,3 +47,23 @@ export const protectRoute = async (req: Request, res: Response, next: NextFuncti
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const token = req.cookies["vehicle_marketplace_user"];
+
+    if (!token || !process.env.JWT_SECRET) return next();
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as DecodedToken;
+
+    if (!decoded?.userId || !decoded?.email) return next();
+
+    const user = await prisma.user.findUnique({ where: { email: decoded.email } });
+
+    if (user) req.user = user;
+
+    next();
+  } catch {
+    next();
+  }
+};

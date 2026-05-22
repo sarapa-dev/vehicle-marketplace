@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { protectRoute } from "../middlewares/auth.middleware";
+import { protectRoute, optionalAuth } from "../middlewares/auth.middleware";
 import {
   getFeaturedListings,
   getDiscountedListings,
@@ -11,9 +11,9 @@ import {
 
 const router = Router();
 
-router.get("/search", searchListings);
-router.get("/featured", getFeaturedListings);
-router.get("/discounted", getDiscountedListings);
+router.get("/search", optionalAuth, searchListings);
+router.get("/featured", optionalAuth, getFeaturedListings);
+router.get("/discounted", optionalAuth, getDiscountedListings);
 router.get("/recently-sold", getRecentlySoldListings);
 router.get("/:id", getListingById);
 

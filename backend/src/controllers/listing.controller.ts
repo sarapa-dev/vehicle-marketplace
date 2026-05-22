@@ -120,7 +120,7 @@ export const searchListings = async (
       }),
     };
 
-    const [listings, total] = await Promise.all([
+    const [rawListings, total] = await Promise.all([
       prisma.listing.findMany({
         where,
         skip,
@@ -142,10 +142,16 @@ export const searchListings = async (
           engine: {
             select: { fuel: true, transmission: true, displacement: true, horsepower: true },
           },
+          favorite: { where: { user_id: req.user?.user_id ?? 0 }, select: { favorite_id: true } },
         },
       }),
       prisma.listing.count({ where }),
     ]);
+
+    const listings = rawListings.map(({ favorite, ...rest }) => ({
+      ...rest,
+      is_favorite: favorite.length > 0,
+    }));
 
     return res.json({
       data: listings,
@@ -160,7 +166,7 @@ export const searchListings = async (
   }
 };
 
-export const getFeaturedListings = async (_req: Request, res: Response) => {
+export const getFeaturedListings = async (req: Request, res: Response) => {
   try {
     const listings = await prisma.listing.findMany({
       where: {
@@ -178,17 +184,23 @@ export const getFeaturedListings = async (_req: Request, res: Response) => {
           orderBy: { created_at: "desc" },
           take: 1,
         },
+        favorite: { where: { user_id: req.user?.user_id ?? 0 }, select: { favorite_id: true } },
       },
     });
 
-    return res.json(listings);
+    const transformed = listings.map(({ favorite, ...rest }) => ({
+      ...rest,
+      is_favorite: favorite.length > 0,
+    }));
+
+    return res.json(transformed);
   } catch (error) {
     console.error("Error fetching featured listings:", error);
     return res.status(500).json({ message: "Failed to fetch featured vehicles" });
   }
 };
 
-export const getDiscountedListings = async (_req: Request, res: Response) => {
+export const getDiscountedListings = async (req: Request, res: Response) => {
   try {
     // TODO: add price_changes_count field into listing table
     // prisma currently cannot fetch listings with over 2 listing price record
@@ -204,6 +216,7 @@ export const getDiscountedListings = async (_req: Request, res: Response) => {
           orderBy: { created_at: "desc" },
           take: 2,
         },
+        favorite: { where: { user_id: req.user?.user_id ?? 0 }, select: { favorite_id: true } },
       },
       orderBy: { listing_id: "desc" },
       take: 50,
@@ -217,7 +230,12 @@ export const getDiscountedListings = async (_req: Request, res: Response) => {
       })
       .slice(0, 10);
 
-    return res.json(discountedListings);
+    const transformed = discountedListings.map(({ favorite, ...rest }) => ({
+      ...rest,
+      is_favorite: favorite.length > 0,
+    }));
+
+    return res.json(transformed);
   } catch (error) {
     console.error("Error fetching discounted listings:", error);
     return res.status(500).json({ message: "Failed to fetch discounted vehicles" });

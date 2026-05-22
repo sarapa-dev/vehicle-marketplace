@@ -7,7 +7,7 @@ const router = Router();
 router.use(protectRoute);
 
 router.get("/", getFavorites);
-router.post("/:listing_id", addFavorite);
+router.post("/", addFavorite);
 router.delete("/:listing_id", removeFavorite);
 
 export default router;

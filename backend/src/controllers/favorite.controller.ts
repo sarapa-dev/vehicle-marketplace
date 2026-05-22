@@ -9,33 +9,48 @@ export const getFavorites = async (req: Request, res: Response) => {
       where: { user_id: userId },
       include: {
         listing: {
-          include: {
-            manufacturer: true,
-            listing_price: { orderBy: { created_at: "desc" }, take: 1 },
-            listing_photo: { take: 1 },
-          },
-          omit: {
-            description: true,
-            user_id: true,
-            category_id: true,
-            manufacturer_id: true,
-            engine_id: true,
+          select: {
+            listing_id: true,
+            title: true,
+            year: true,
+            mileage: true,
+            is_promoted: true,
+            listing_photo: { select: { listing_photo_id: true, url: true }, take: 1 },
+            listing_price: {
+              select: { listing_price_id: true, price: true },
+              orderBy: { created_at: "desc" },
+              take: 1,
+            },
+            manufacturer: { select: { name: true } },
+            engine: {
+              select: { fuel: true, transmission: true, displacement: true, horsepower: true },
+            },
+            favorite: { where: { user_id: req.user?.user_id }, select: { favorite_id: true } },
           },
         },
       },
+      omit: { listing_id: true, user_id: true },
       orderBy: { created_at: "desc" },
     });
 
-    return res.json(favorites);
+    const transformed = favorites.map(({ listing }) => {
+      const { favorite, ...rest } = listing;
+      return {
+        ...rest,
+        is_favorite: true,
+      };
+    });
+
+    return res.json(transformed);
   } catch (error) {
     console.error("Error fetching favorites:", error);
     return res.status(500).json({ message: "Failed to fetch favorites" });
   }
 };
 
-export const addFavorite = async (req: Request<{ listing_id: string }>, res: Response) => {
+export const addFavorite = async (req: Request<{}, {}, { listing_id: string }>, res: Response) => {
   try {
-    const listingId = Number(req.params.listing_id);
+    const listingId = Number(req.body.listing_id);
 
     if (isNaN(listingId)) {
       return res.status(400).json({ message: "Invalid listing id" });
