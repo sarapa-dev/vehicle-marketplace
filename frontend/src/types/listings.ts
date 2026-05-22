@@ -21,6 +21,7 @@ export interface BaseListing {
   year: number;
   listing_photo: ListingPhoto[];
   listing_price: ListingPrice[];
+  is_favorite?: boolean;
 }
 
 export interface SoldListing {
@@ -43,6 +44,7 @@ export const isSoldListing = (listing: AnyListing): listing is SoldListing =>
 export interface SearchListing extends BaseListing {
   mileage: number;
   is_promoted: boolean;
+  is_favorite?: boolean;
   manufacturer: {
     name: string;
   };

@@ -11,8 +11,6 @@ export default function UserProfilePage() {
 
   const { userProfile, isLoading, error } = useUserProfile(user?.user_id);
 
-  console.log(userProfile);
-
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <div className="mb-8">

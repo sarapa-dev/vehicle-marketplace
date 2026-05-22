@@ -78,7 +78,7 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
+                    <Link to="/favorites" className="cursor-pointer">
                       <Heart className="mr-2 size-4" />
                       Saved Vehicles
                     </Link>
