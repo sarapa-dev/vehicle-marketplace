@@ -75,6 +75,7 @@ model listing {
   description     String            @db.Text
   is_promoted     Boolean           @default(false)
   status          listing_status    @default(active)
+  deleted_at      DateTime?         @db.Timestamp(0)
   favorite        favorite[]
   category        category          @relation(fields: [category_id], references: [category_id], map: "fk_listing_category_id")
   engine          engine            @relation(fields: [engine_id], references: [engine_id], map: "fk_listing_engine_id")

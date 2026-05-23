@@ -72,7 +72,7 @@ export const getUserListings = async (req: Request<{ user_id: string }>, res: Re
     }
 
     const listings = await prisma.listing.findMany({
-      where: { user_id: userId },
+      where: { user_id: userId, deleted_at: null },
       include: {
         listing_photo: {
           omit: { listing_id: true },
@@ -94,6 +94,7 @@ export const getUserListings = async (req: Request<{ user_id: string }>, res: Re
         engine_id: true,
         description: true,
         status: true,
+        deleted_at: true,
       },
     });
 

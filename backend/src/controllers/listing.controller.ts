@@ -3,6 +3,38 @@ import prisma from "../lib/prisma";
 import cloudinary from "../lib/cloudinary";
 import { Prisma } from "@prisma/client";
 
+export const deleteListing = async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    const listingId = Number(req.params.id);
+
+    if (isNaN(listingId)) {
+      return res.status(400).json({ message: "Invalid listing id" });
+    }
+
+    const listing = await prisma.listing.findUnique({
+      where: { listing_id: listingId, deleted_at: null },
+    });
+
+    if (!listing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    if (listing.user_id !== req.user.user_id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    await prisma.listing.update({
+      where: { listing_id: listingId },
+      data: { deleted_at: new Date() },
+    });
+
+    return res.json({ message: "Listing deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting listing:", error);
+    return res.status(500).json({ message: "Failed to delete listing" });
+  }
+};
+
 export const getListingById = async (req: Request<{ id: string }>, res: Response) => {
   try {
     const { id } = req.params;
@@ -16,7 +48,7 @@ export const getListingById = async (req: Request<{ id: string }>, res: Response
     }
 
     const listing = await prisma.listing.findUnique({
-      where: { listing_id: listingId },
+      where: { listing_id: listingId, deleted_at: null },
       include: {
         user: { omit: { password: true } },
         category: { omit: { parent__category_id: true } },
@@ -42,6 +74,7 @@ export const getListingById = async (req: Request<{ id: string }>, res: Response
         category_id: true,
         manufacturer_id: true,
         engine_id: true,
+        deleted_at: true,
       },
     });
 
@@ -91,6 +124,7 @@ export const searchListings = async (
 
     const where: Prisma.listingWhereInput = {
       status: "active",
+      deleted_at: null,
       ...(category_id && { category_id: parseInt(category_id) }),
       ...(manufacturer_id && { manufacturer_id: parseInt(manufacturer_id) }),
       ...((year_from || year_to) && {
@@ -172,6 +206,7 @@ export const getFeaturedListings = async (req: Request, res: Response) => {
       where: {
         is_promoted: true,
         status: "active",
+        deleted_at: null,
       },
       take: 12,
       select: {
@@ -205,7 +240,7 @@ export const getDiscountedListings = async (req: Request, res: Response) => {
     // TODO: add price_changes_count field into listing table
     // prisma currently cannot fetch listings with over 2 listing price record
     const listings = await prisma.listing.findMany({
-      where: { status: "active" },
+      where: { status: "active", deleted_at: null },
       select: {
         listing_id: true,
         title: true,
@@ -251,6 +286,7 @@ export const getRecentlySoldListings = async (_req: Request, res: Response) => {
       where: {
         status: "sold",
         listing_sale: { sold_at: { gte: time } },
+        deleted_at: null,
       },
       orderBy: {
         listing_sale: { sold_at: "desc" },

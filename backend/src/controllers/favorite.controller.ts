@@ -57,7 +57,7 @@ export const addFavorite = async (req: Request<{}, {}, { listing_id: string }>, 
     }
 
     const ownListing = await prisma.listing.findUnique({
-      where: { listing_id: listingId },
+      where: { listing_id: listingId, deleted_at: null },
       select: { user_id: true },
     });
 
