@@ -8,6 +8,7 @@ import {
   deleteListing,
   searchListings,
   getListingById,
+  updateListing,
 } from "../controllers/listing.controller";
 
 const router = Router();
@@ -19,6 +20,7 @@ router.get("/recently-sold", getRecentlySoldListings);
 
 router.get("/:id", getListingById);
 router.post("/", protectRoute, createListing);
+router.patch("/:id", protectRoute, updateListing);
 router.delete("/:id", protectRoute, deleteListing);
 
 export default router;

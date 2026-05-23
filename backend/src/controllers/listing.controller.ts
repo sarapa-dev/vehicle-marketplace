@@ -51,7 +51,7 @@ export const getListingById = async (req: Request<{ id: string }>, res: Response
       where: { listing_id: listingId, deleted_at: null },
       include: {
         user: { omit: { password: true } },
-        category: { omit: { parent__category_id: true } },
+        category: true,
         manufacturer: true,
         engine: { omit: { manufacturer_id: true } },
         listing_feature: {
@@ -489,6 +489,169 @@ export const createListing = async (req: Request<{}, {}, CreateListingBody>, res
     return res.status(201).json({ message: "Listing created successfully" });
   } catch (error) {
     console.error("Error creating listing:", error);
+    return res.status(500).json({ message: "Something went wrong" });
+  }
+};
+
+export const updateListing = async (
+  req: Request<{ id: string }, {}, CreateListingBody>,
+  res: Response,
+) => {
+  const listingId = Number(req.params.id);
+  const {
+    title,
+    description,
+    year,
+    mileage,
+    category_id,
+    manufacturer_id,
+    displacement,
+    fuel,
+    horsepower,
+    euro_standard,
+    transmission,
+    features,
+    price,
+    images,
+  } = req.body;
+
+  try {
+    if (isNaN(listingId)) {
+      return res.status(400).json({ message: "Invalid listing id" });
+    }
+
+    const existing = await prisma.listing.findUnique({
+      where: { listing_id: listingId, deleted_at: null },
+      include: {
+        listing_photo: true,
+        listing_price: { orderBy: { created_at: "desc" }, take: 1 },
+      },
+    });
+
+    if (!existing) {
+      return res.status(404).json({ message: "Listing not found" });
+    }
+
+    if (existing.user_id !== req.user.user_id) {
+      return res.status(403).json({ message: "Unauthorized" });
+    }
+
+    const validSubcategory = await prisma.category.findFirst({
+      where: { category_id: Number(category_id) },
+    });
+
+    if (!validSubcategory || validSubcategory.parent__category_id === null) {
+      return res.status(400).json({ message: "Please choose an adequate subcategory" });
+    }
+
+    if (new Date().getFullYear() < Number(year)) {
+      return res.status(400).json({ message: "Year cannot be in the future" });
+    }
+
+    const existingUrls = images.filter((img) => img.startsWith("http"));
+    const newBase64Images = images.filter((img) => img.startsWith("data:image"));
+
+    const base64Pattern = /^data:image\/(jpeg|jpg|png|webp|avif);base64,/;
+    for (const img of newBase64Images) {
+      if (!base64Pattern.test(img)) {
+        return res.status(400).json({ message: "Invalid or unsupported image format" });
+      }
+    }
+
+    // Upload only the new images
+    const newlyUploaded = await Promise.all(
+      newBase64Images.map((img) =>
+        cloudinary.uploader.upload(img, {
+          folder: "vehicle_marketplace",
+          resource_type: "image",
+          quality: "auto",
+          format: "avif",
+        }),
+      ),
+    );
+
+    await prisma.$transaction(async (tx) => {
+      const engine = await tx.engine.findFirst({
+        where: {
+          manufacturer_id: Number(manufacturer_id),
+          displacement: Number(displacement),
+          fuel,
+          horsepower: Number(horsepower),
+          euro_standard,
+          transmission,
+        },
+      });
+
+      const engine_id = engine
+        ? engine.engine_id
+        : (
+            await tx.engine.create({
+              data: {
+                manufacturer_id: Number(manufacturer_id),
+                displacement: Number(displacement),
+                fuel,
+                horsepower: Number(horsepower),
+                euro_standard,
+                transmission,
+              },
+            })
+          ).engine_id;
+
+      await tx.listing.update({
+        where: { listing_id: listingId },
+        data: {
+          title,
+          description,
+          year: Number(year),
+          mileage: Number(mileage),
+          manufacturer_id: Number(manufacturer_id),
+          category_id: Number(category_id),
+          engine_id: Number(engine_id),
+        },
+      });
+
+      // Only add a new price record if the price actually changed
+      const currentPrice = existing.listing_price[0]?.price;
+      if (Number(price) !== currentPrice) {
+        await tx.listing_price.create({
+          data: { listing_id: listingId, price: Number(price) },
+        });
+      }
+
+      // Remove DB records for photos the user deleted (not in existingUrls)
+      const photosToRemove = existing.listing_photo.filter((p) => !existingUrls.includes(p.url));
+      if (photosToRemove.length > 0) {
+        await tx.listing_photo.deleteMany({
+          where: {
+            listing_photo_id: { in: photosToRemove.map((p) => p.listing_photo_id) },
+          },
+        });
+      }
+
+      // Insert newly uploaded photos
+      if (newlyUploaded.length > 0) {
+        await tx.listing_photo.createMany({
+          data: newlyUploaded.map((img) => ({
+            listing_id: listingId,
+            url: img.secure_url,
+          })),
+        });
+      }
+
+      await tx.listing_feature.deleteMany({ where: { listing_id: listingId } });
+      if (features.length > 0) {
+        await tx.listing_feature.createMany({
+          data: features.map((fid: number) => ({
+            listing_id: listingId,
+            feature_id: fid,
+          })),
+        });
+      }
+    });
+
+    return res.json({ message: "Listing updated successfully" });
+  } catch (error) {
+    console.error("Error updating listing:", error);
     return res.status(500).json({ message: "Something went wrong" });
   }
 };
