@@ -70,10 +70,36 @@ export interface ListingDetail {
   is_promoted: boolean;
   status: string;
   user: UserProfile;
-  category: Omit<Category, "parent__category_id">;
+  category: Category;
   manufacturer: Manufacturer;
   engine: Engine;
   listing_feature: ListingFeature[];
   listing_price: ListingPrice[];
   listing_photo: ListingPhoto[];
+}
+
+export interface ListingForEdit {
+  listing_id: number;
+  title: string;
+  year: number;
+  mileage: number;
+  description: string;
+  listing_photo: { listing_photo_id: number; url: string }[];
+  listing_price: { price: number }[];
+  manufacturer: { manufacturer_id: number; name: string };
+  engine: {
+    fuel: string;
+    transmission: string;
+    displacement: number | null;
+    horsepower: number;
+    euro_standard: string;
+  };
+  category: {
+    category_id: number;
+    name: string;
+    parent__category_id: number | null;
+  };
+  listing_feature: {
+    feature: { feature_id: number; name: string };
+  }[];
 }

@@ -90,7 +90,7 @@ function SubscriptionPage() {
 
                   <div className="space-y-3 mb-8 flex-1">
                     <div className="flex items-start gap-3">
-                      <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                      <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                       <span className="text-sm text-foreground">
                         Up to {plan.max_listings} vehicle{" "}
                         {plan.max_listings === 1 ? "listing" : "listings"}
@@ -100,11 +100,11 @@ function SubscriptionPage() {
                     {plan.name === "Free" && (
                       <>
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm text-foreground">Basic seller profile</span>
                         </div>
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm text-foreground">
                             Standard search visibility
                           </span>
@@ -115,11 +115,11 @@ function SubscriptionPage() {
                     {plan.name === "Basic" && (
                       <>
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm text-foreground">Featured listings</span>
                         </div>
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm text-foreground">
                             Enhanced search visibility
                           </span>
@@ -130,17 +130,17 @@ function SubscriptionPage() {
                     {plan.name === "Premium" && (
                       <>
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm text-foreground">
                             Priority featured listings
                           </span>
                         </div>
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm text-foreground">Top search visibility</span>
                         </div>
                         <div className="flex items-start gap-3">
-                          <CheckCircle2 className="size-5 text-primary mt-0.5 flex-shrink-0" />
+                          <CheckCircle2 className="size-5 text-primary mt-0.5 shrink-0" />
                           <span className="text-sm text-foreground">Enhanced seller badge</span>
                         </div>
                       </>
