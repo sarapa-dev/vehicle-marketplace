@@ -72,7 +72,7 @@ export default function Header() {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
+                    <Link to="/my-listings" className="cursor-pointer">
                       <Car className="mr-2 size-4" />
                       My Listings
                     </Link>

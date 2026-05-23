@@ -35,7 +35,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex sm:min-h-[600px] items-center justify-center py-4">
+    <div className="flex sm:min-h-150 items-center justify-center py-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 text-center">
           <div className="mb-4 flex justify-center">

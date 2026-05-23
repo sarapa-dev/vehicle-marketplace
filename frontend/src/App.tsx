@@ -15,6 +15,7 @@ import CancelPage from "./pages/CancelPage";
 import SearchPage from "./pages/SearchPage";
 import UserProfilePage from "./pages/UserProfilePage";
 import FavoritesPage from "./pages/FavoritesPage";
+import MyListingsPage from "./pages/MyListingsPage";
 
 export default function App() {
   const { isInitialized, checkUser, user } = useAuthStore();
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="register" element={user ? <HomePage /> : <RegisterPage />} />
         <Route path="profile" element={user ? <UserProfilePage /> : <RegisterPage />} />
         <Route path="favorites" element={user ? <FavoritesPage /> : <RegisterPage />} />
+        <Route path="/my-listings" element={user ? <MyListingsPage /> : <RegisterPage />} />
         <Route path="create-listing" element={user ? <CreateListingPage /> : <HomePage />} />
         <Route path="subscription">
           <Route index element={user ? <SubscriptionPage /> : <HomePage />} />

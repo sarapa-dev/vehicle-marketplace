@@ -76,7 +76,7 @@ export default function CreateListingPage() {
     <section className="min-h-screen bg-background py-4 sm:py-8">
       <div className="container mx-auto sm:px-4 max-w-4xl">
         <div className="mb-8">
-          <Button variant="ghost" onClick={() => navigate("..")} className="mb-4">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
             <ArrowLeft className="mr-2 size-4" />
             Back
           </Button>
